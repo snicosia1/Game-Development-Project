@@ -6,8 +6,8 @@ public class DeadlyPit : MonoBehaviour
     {
         if (collision.CompareTag("Player"))
         {
-            collision.GetComponent<PlayerMovement>().DrainHealth();
-           Destroy(collision.gameObject);
+            collision.GetComponent<PlayerController>().DrainHealth();
+            collision.GetComponent<PlayerController>().Die();
             }
         }
     

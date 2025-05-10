@@ -1,12 +1,12 @@
 using UnityEngine;
 using UnityEngine.UI;
 using System.Collections;
-
-public class PlayerMovement : MonoBehaviour
+using UnityEngine.SceneManagement;
+public class PlayerController : MonoBehaviour
 {
     [Header("Movement Settings")]
-    [SerializeField] public float moveSpeed = 5f; // Speed of horizontal movement
-    [SerializeField] public float jumpForce = 10f; // Force applied when jumping
+    [SerializeField] public float moveSpeed = 5f; 
+    [SerializeField] public float jumpForce = 10f; 
 
     [Header("Ground Check")]
 
@@ -18,35 +18,38 @@ public class PlayerMovement : MonoBehaviour
     [Header("Health System")]
      [SerializeField] private float invincibilityDuration = 1f;
     private bool isInvincible = false;
-    [SerializeField] private Image[] healthHearts; // Assign in inspector
+    [SerializeField] private Image[] healthHearts; 
     [SerializeField] private Sprite fullHeart, emptyHeart;
+    [SerializeField] private AudioSource playerSource;
+    [SerializeField] private AudioClip deathSound;
 
     [SerializeField] private int maxHealth = 3;
     private int currentHealth;
+    [SerializeField] private float delaySeconds = 3f;
 
     void Start()
     {
-        // Get the Rigidbody2D component
+        
         rb = GetComponent<Rigidbody2D>();
         currentHealth = maxHealth;
     }
 
     void Update()
     {
-        // Check if the player is grounded
         
-        // Handle movement
-        float moveInput = Input.GetAxis("Horizontal"); // A/D or Left/Right Arrow keys
+        
+        
+        float moveInput = Input.GetAxis("Horizontal"); 
         rb.linearVelocity = new Vector2(moveInput * moveSpeed, rb.linearVelocity.y);
         animator.SetFloat("Speed", Mathf.Abs(moveInput * moveSpeed));
 
         if (moveInput > 0)
         {
-            transform.localScale = new Vector3(20, 20, 20); // Facing right
+            transform.localScale = new Vector3(20, 20, 20); 
         }
         else if (moveInput < 0)
         {
-            transform.localScale = new Vector3(-20, 20, 20); // Facing left
+            transform.localScale = new Vector3(-20, 20, 20); 
         }
 
         // Handle jumping
@@ -55,7 +58,7 @@ public class PlayerMovement : MonoBehaviour
             if (isGrounded)
             {
                 Jump();
-                jumpsRemaining = maxJumps - 1; // Subtract one for the initial jump
+                jumpsRemaining = maxJumps - 1; 
             }
             else if (jumpsRemaining > 0)
             {
@@ -71,11 +74,11 @@ public class PlayerMovement : MonoBehaviour
     }
     void OnCollisionEnter2D(Collision2D collision)
     {
-        // Check if player is touching ground
+        
         if (collision.gameObject.CompareTag("Ground"))
         {
             isGrounded = true;
-            jumpsRemaining = maxJumps; // Reset jumps when grounded
+            jumpsRemaining = maxJumps; 
         }
     }
     
@@ -104,24 +107,31 @@ public class PlayerMovement : MonoBehaviour
         }
     }
     
-    void Die()
+    public void Die()
     {
         Debug.Log("Player has died!");
-        // Add death animation, game over screen, etc.
-        Destroy(gameObject);
+        rb.constraints = RigidbodyConstraints2D.FreezeAll;
+        animator.SetTrigger("IsDead");
+        playerSource.volume = 4.0f;
+        playerSource.Play();
+        Destroy(gameObject, 1f);
+        
+        
+        
+        
     }
 
     IEnumerator InvincibilityFrame()
     {
         isInvincible = true;
         
-        // Optional: Visual feedback (blinking)
+        
         float elapsed = 0f;
         while (elapsed < invincibilityDuration)
         {
-            // Toggle sprite renderer visibility for blink effect
+            
             GetComponent<SpriteRenderer>().enabled = !GetComponent<SpriteRenderer>().enabled;
-            elapsed += Time.deltaTime * 5f; // Adjust blink speed
+            elapsed += Time.deltaTime * 5f; 
             yield return null;
         }
         GetComponent<SpriteRenderer>().enabled = true;
@@ -155,6 +165,13 @@ void UpdateHealthUI()
     healthHearts[1].sprite = emptyHeart;
     healthHearts[2].sprite = emptyHeart;
 }
+IEnumerator Delay()
+    {
+        Debug.Log($"Waiting {delaySeconds} seconds...");
+        yield return new WaitForSeconds(delaySeconds);
+        
+        SceneManager.LoadScene("MainMenu");
+    }
 }
 
 
